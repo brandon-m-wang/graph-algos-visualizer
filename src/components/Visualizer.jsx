@@ -19,7 +19,7 @@ const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
         springLength: 95,
         springConstant: 0.04,
         centralGravity: 1.5,
-        avoidOverlap: 0.7,
+        avoidOverlap: 1,
       },
     },
     interaction: {
@@ -30,7 +30,7 @@ const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
     nodes: {
       shape: "dot",
       size: 15,
-      mass: 2.5,
+      mass: 2.7,
     },
     layout: {
       hierarchical: false,
@@ -48,6 +48,9 @@ const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
         },
       },
       chosen: false,
+      font: {
+        size: 16,
+      },
       smooth: {
         enabled: true,
         type: "continuous",

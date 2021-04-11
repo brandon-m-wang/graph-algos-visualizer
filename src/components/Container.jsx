@@ -121,7 +121,7 @@ const Container = () => {
       <div id="header">
         <h3>Graph Traversal Algorithms</h3>
         <a className="button" onClick={shuffle}>
-          Shuffle!
+          Shuffle
         </a>
         <a className="button1" onClick={shuffle}>
           Set start vertex
@@ -130,6 +130,9 @@ const Container = () => {
           Set end vertex
         </a>
         <Dropdown />
+        <a className="button" onClick={shuffle}>
+          Run
+        </a>
       </div>
       <Visualizer key={makeid(10)} graph={graph} onShuffle={setGraph} />
     </div>
