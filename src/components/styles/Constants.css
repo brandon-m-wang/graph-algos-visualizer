@@ -1,0 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Yantramanav:wght@100;300;400;500;700;900&display=swap");
+
+body {
+  font-family: Yantramanav, sans-serif;
+}
+
+h3 {
+  font-weight: 300;
+}
