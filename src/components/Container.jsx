@@ -1,10 +1,19 @@
 import Visualizer from "./Visualizer";
 import Dropdown from "./Dropdown";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import "./styles/Container.css";
 import "./styles/Constants.css";
 
 const Container = () => {
+  const algoSelect = (event) => {
+    event.preventDefault();
+    setAlgo(event.target.value);
+  };
+
+  // useEffect(() => console.log("RENDER"));
+
+  const reveal = () => {};
+
   const shuffle = () => {
     setGraph(() => {
       var newState = {
@@ -12,10 +21,10 @@ const Container = () => {
           id: e,
         })),
         edges: Array.from(new Array(10).keys()).map((e) => {
-          var len = getRandomInt(2, 15);
+          var len = getRandomInt(2, 16);
           return {
-            from: getRandomInt(0, 14),
-            to: getRandomInt(0, 14),
+            from: getRandomInt(0, 15),
+            to: getRandomInt(0, 15),
             label: len.toString(),
             length: len * 20,
           };
@@ -24,7 +33,7 @@ const Container = () => {
 
       //ensure connectivity
       for (let i = 0; i < 14; i++) {
-        let len = getRandomInt(2, 15);
+        let len = getRandomInt(2, 16);
         newState.edges.push({
           from: i,
           to: i + 1,
@@ -50,7 +59,14 @@ const Container = () => {
 
       return newState;
     });
+    setGraphKey(makeid(10));
   };
+
+  const [algo, setAlgo] = useState("Djikstra's");
+
+  const [graphKey, setGraphKey] = useState(makeid(10));
+
+  const [running, setRunning] = useState(false);
 
   const [graph, setGraph] = useState(() => {
     var newState = {
@@ -58,10 +74,10 @@ const Container = () => {
         id: e,
       })),
       edges: Array.from(new Array(13).keys()).map((e) => {
-        var len = getRandomInt(2, 15);
+        var len = getRandomInt(2, 16);
         return {
-          from: getRandomInt(0, 14),
-          to: getRandomInt(0, 14),
+          from: getRandomInt(0, 15),
+          to: getRandomInt(0, 15),
           label: len.toString(),
           length: len * 20,
         };
@@ -70,7 +86,7 @@ const Container = () => {
 
     //ensure connectivity
     for (let i = 0; i < 14; i++) {
-      let len = getRandomInt(2, 15);
+      let len = getRandomInt(2, 16);
       newState.edges.push({
         from: i,
         to: i + 1,
@@ -119,7 +135,9 @@ const Container = () => {
   return (
     <div>
       <div id="header">
-        <h3>Graph Traversal Algorithms</h3>
+        <h3 style={{ position: "absolute", left: 0 }}>
+          Graph Traversal Algorithms
+        </h3>
         <a className="button" onClick={shuffle}>
           Shuffle
         </a>
@@ -129,12 +147,20 @@ const Container = () => {
         <a className="button2" onClick={shuffle}>
           Set end vertex
         </a>
-        <Dropdown />
+        <Dropdown handleChange={algoSelect} />
         <a className="button" onClick={shuffle}>
           Run
         </a>
+        <a className="button" onClick={reveal}>
+          Detailed runtime info
+        </a>
+        {/* {algo === "Kruskal's" ? (
+          <h3>WQUPC Object (Disjoint Sets):</h3>
+        ) : (
+          <h3>Priority Queue (Fringe):</h3>
+        )} */}
       </div>
-      <Visualizer key={makeid(10)} graph={graph} onShuffle={setGraph} />
+      <Visualizer key={graphKey} graph={graph} algo={algo} running={running} />
     </div>
   );
 };

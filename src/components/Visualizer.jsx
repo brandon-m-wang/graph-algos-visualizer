@@ -5,14 +5,7 @@ import "./styles/Constants.css";
 
 //shift alt F
 
-const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
-  const handleShuffle = useCallback(
-    (event) => {
-      onShuffle(event.target.value);
-    },
-    [onShuffle]
-  );
-
+const Visualizer = ({ key, graph, algo, running }) => {
   const options = {
     physics: {
       barnesHut: {

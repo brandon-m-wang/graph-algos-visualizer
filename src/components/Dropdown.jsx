@@ -1,7 +1,7 @@
-const Dropdown = () => {
+const Dropdown = ({ handleChange }) => {
   return (
-    <form class="select">
-      <select name="slct" id="slct">
+    <form className="select">
+      <select name="slct" id="slct" onChange={handleChange}>
         <option>Djikstra's</option>
         <option>A*</option>
         <option>Prim's</option>
