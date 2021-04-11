@@ -9,15 +9,21 @@ const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
   const handleShuffle = useCallback(
     (event) => {
       onShuffle(event.target.value);
+      Graph.fit();
     },
     [onShuffle]
   );
 
   const options = {
+    interaction: {
+      dragView: false,
+      hover: true,
+      zoomView: false,
+    },
     nodes: {
       shape: "dot",
       size: 15,
-      mass: 2,
+      mass: 2.5,
     },
     layout: {
       hierarchical: false,
@@ -35,9 +41,12 @@ const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
         },
       },
       chosen: false,
-      smooth: true,
+      smooth: {
+        enabled: true,
+        type: "continuous",
+      },
     },
-    height: "700px",
+    height: "100%",
   };
 
   const events = {

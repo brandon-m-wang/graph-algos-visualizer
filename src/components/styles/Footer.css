@@ -4,16 +4,20 @@ html {
 
 #footer {
   background: linear-gradient(to top, #2654a5, #2f67cd);
-  height: 30px;
+  height: 4.25vh;
   display: block;
   margin: 0;
   position: absolute;
   bottom: 0;
   width: 100%;
   padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #footer > h3 {
   margin: 0 3rem;
   color: white;
+  font-size: 0.8rem;
 }

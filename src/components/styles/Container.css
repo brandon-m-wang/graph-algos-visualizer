@@ -1,9 +1,11 @@
 #header {
   background: linear-gradient(to top, #2654a5, #2f67cd);
-  height: 30px;
+  height: 4.25vh;
   display: block;
   margin: 0;
   padding: 1rem;
+  display: flex;
+  align-items: center;
 }
 
 #header > h3 {

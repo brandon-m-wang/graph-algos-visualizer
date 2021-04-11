@@ -7,3 +7,66 @@ body {
 h3 {
   font-weight: 300;
 }
+
+a.button {
+  display: inline-block;
+  padding: 0.35em 1em;
+  margin: 0 1rem;
+  border: 0.1em solid #ffffff;
+  cursor: pointer;
+  border-radius: 0.12em;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  color: #ffffff;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+a.button:hover {
+  color: #000000;
+  background-color: #ffffff;
+}
+
+a.button1 {
+  display: inline-block;
+  padding: 0.35em 1em;
+  margin: 0 1rem;
+  border: 0.1em solid #c1f8a7;
+  cursor: pointer;
+  border-radius: 0.12em;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  color: #c1f8a7;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+a.button1:hover {
+  color: #000000;
+  background-color: #c1f8a7;
+}
+
+a.button2 {
+  display: inline-block;
+  padding: 0.35em 1em;
+  margin: 0 1rem;
+  border: 0.1em solid #f7a5a5;
+  cursor: pointer;
+  border-radius: 0.12em;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-family: "Roboto", sans-serif;
+  font-weight: 300;
+  color: #f7a5a5;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+a.button2:hover {
+  color: #000000;
+  background-color: #f7a5a5;
+}
