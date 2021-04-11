@@ -57,7 +57,7 @@ const Container = () => {
       nodes: Array.from(new Array(15).keys()).map((e) => ({
         id: e,
       })),
-      edges: Array.from(new Array(18).keys()).map((e) => {
+      edges: Array.from(new Array(13).keys()).map((e) => {
         var len = getRandomInt(2, 15);
         return {
           from: getRandomInt(0, 14),

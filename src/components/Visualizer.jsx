@@ -9,12 +9,19 @@ const Visualizer = ({ key, graph, onShuffle, onAlgoSwitch }) => {
   const handleShuffle = useCallback(
     (event) => {
       onShuffle(event.target.value);
-      Graph.fit();
     },
     [onShuffle]
   );
 
   const options = {
+    physics: {
+      barnesHut: {
+        springLength: 95,
+        springConstant: 0.04,
+        centralGravity: 1.5,
+        avoidOverlap: 0.7,
+      },
+    },
     interaction: {
       dragView: false,
       hover: true,
