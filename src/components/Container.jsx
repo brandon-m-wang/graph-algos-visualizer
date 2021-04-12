@@ -5,6 +5,9 @@ import React, { useEffect, useState } from "react";
 import "./styles/Container.css";
 import "./styles/Constants.css";
 
+const numNodes = 50;
+const randEdges = 30;
+
 const Container = () => {
   const algoSelect = (event) => {
     event.preventDefault();
@@ -27,16 +30,16 @@ const Container = () => {
     const edges = {};
     setGraph(() => {
       var newState = {
-        nodes: Array.from(new Array(15).keys()).map((e) => ({
+        nodes: Array.from(new Array(numNodes).keys()).map((e) => ({
           id: e,
         })),
-        edges: Array.from(new Array(10).keys()).map((e) => {
+        edges: Array.from(new Array(randEdges).keys()).map((e) => {
           var len = getRandomInt(2, 16);
           var id = makeid(10);
           edges[id] = len.toString();
           return {
-            from: getRandomInt(0, 15),
-            to: getRandomInt(0, 15),
+            from: getRandomInt(0, numNodes),
+            to: getRandomInt(0, numNodes),
             label: len.toString(),
             length: len * 20,
             id: id,
@@ -44,7 +47,7 @@ const Container = () => {
         }),
       };
       //ensure connectivity
-      for (let i = 0; i < 14; i++) {
+      for (let i = 0; i < numNodes - 1; i++) {
         let len = getRandomInt(2, 16);
         var id = makeid(10);
         edges[id] = len.toString();
@@ -86,14 +89,14 @@ const Container = () => {
 
   const [graph, setGraph] = useState(() => {
     var newState = {
-      nodes: Array.from(new Array(15).keys()).map((e) => ({
+      nodes: Array.from(new Array(numNodes).keys()).map((e) => ({
         id: e,
       })),
-      edges: Array.from(new Array(13).keys()).map((e) => {
+      edges: Array.from(new Array(randEdges).keys()).map((e) => {
         var len = getRandomInt(2, 16);
         return {
-          from: getRandomInt(0, 15),
-          to: getRandomInt(0, 15),
+          from: getRandomInt(0, numNodes),
+          to: getRandomInt(0, numNodes),
           label: len.toString(),
           length: len * 20,
         };
@@ -101,7 +104,7 @@ const Container = () => {
     };
 
     //ensure connectivity
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < numNodes - 1; i++) {
       let len = getRandomInt(2, 16);
       newState.edges.push({
         from: i,
@@ -183,6 +186,7 @@ const Container = () => {
         running={running}
         handleRun={handleRun}
         edges={edgeState}
+        numNodes={numNodes}
       />
     </div>
   );

@@ -14,6 +14,7 @@ const Visualizer = ({
   running,
   handleRun,
   edges,
+  numNodes,
   start,
   end,
 }) => {
@@ -23,15 +24,15 @@ const Visualizer = ({
     physics: {
       barnesHut: {
         springLength: 95,
-        springConstant: 0.04,
+        springConstant: 0.01,
         centralGravity: 1.5,
         avoidOverlap: 1,
       },
     },
     interaction: {
-      dragView: false,
+      dragView: true,
       hover: true,
-      zoomView: false,
+      zoomView: true,
     },
     nodes: {
       shape: "dot",
@@ -123,22 +124,24 @@ const Visualizer = ({
     const fringe = new FastPriorityQueue(function (a, b) {
       return a[1] < b[1];
     });
-    const distTo = new Array(15).fill(Number.MAX_SAFE_INTEGER);
+    const distTo = new Array(numNodes).fill(Number.MAX_SAFE_INTEGER);
     distTo[startVertex] = 0;
 
     fringe.add([startVertex, 0]);
 
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < numNodes - 1; i++) {
       if (i !== startVertex) {
         fringe.add([i, Number.MAX_SAFE_INTEGER]);
       }
     }
 
     while (!fringe.isEmpty()) {
-      await new Promise((r) => setTimeout(r, 1000));
+      if (network.getSelectedNodes().length === numNodes) {
+        break;
+      }
+
+      await new Promise((r) => setTimeout(r, 50));
       //&& fringe.peek()[0] !== endVertex
-      fringe.forEach((value, index) => console.log(value, index));
-      console.log(distTo);
       let currVertex = fringe.peek()[0];
       let currVertexDist = fringe.peek()[1];
       let neighboringVertices = network.getConnectedNodes(currVertex);
@@ -157,13 +160,13 @@ const Visualizer = ({
         let commonEdge = await neighboringEdges.filter((edge) =>
           network.getConnectedEdges(neighbor).includes(edge)
         )[0]; //gives common edge in single-element array
-        console.log(commonEdge);
         if (currVertexDist + parseInt(edges[commonEdge]) < distTo[neighbor]) {
           fringe.removeOne((x) => arraysEqual(x, [neighbor, distTo[neighbor]]));
           distTo[neighbor] = currVertexDist + parseInt(edges[commonEdge]);
           fringe.add([neighbor, distTo[neighbor]]);
           network.setSelection(
             {
+              nodes: [neighbor],
               edges: [commonEdge],
             },
             {
