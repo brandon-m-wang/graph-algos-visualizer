@@ -1,4 +1,5 @@
 import Graph from "react-graph-vis";
+import FastPriorityQueue from "fastpriorityqueue";
 import { useCallback, useState, useEffect, componentDidUpdate } from "react";
 import "./styles/Visualizer.css";
 import "./styles/Constants.css";
@@ -6,7 +7,16 @@ import { render } from "@testing-library/react";
 
 //shift alt F
 
-const Visualizer = ({ key, graph, algo, running, handleRun, start, end }) => {
+const Visualizer = ({
+  key,
+  graph,
+  algo,
+  running,
+  handleRun,
+  edges,
+  start,
+  end,
+}) => {
   const [network, setNetwork] = useState({});
 
   const options = {
@@ -43,7 +53,7 @@ const Visualizer = ({ key, graph, algo, running, handleRun, start, end }) => {
           enabled: false,
         },
       },
-      chosen: false,
+      chosen: true,
       font: {
         size: 16,
       },
@@ -56,9 +66,8 @@ const Visualizer = ({ key, graph, algo, running, handleRun, start, end }) => {
   };
 
   const events = {
-    release: (event) => {
+    select: (event) => {
       var { nodes, edges } = event;
-      console.log(nodes, edges);
     },
   };
 
@@ -76,16 +85,16 @@ const Visualizer = ({ key, graph, algo, running, handleRun, start, end }) => {
     if (running) {
       switch (algo) {
         case "Dijkstra's":
-          dijkstras(graph, start, end);
+          dijkstras(1, 14);
           break;
         case "A*":
-          A(graph, start, end);
+          A(start, end);
           break;
         case "Prim's":
-          prims(graph, start);
+          prims(start);
           break;
         case "Kruskal's":
-          kruskals(graph);
+          kruskals();
           break;
         default:
           break;
@@ -93,21 +102,96 @@ const Visualizer = ({ key, graph, algo, running, handleRun, start, end }) => {
     }
   });
 
-  function loadNeighbors(graph) {}
+  function arraysEqual(a, b) {
+    if (a === b) return true;
+    if (a == null || b == null) return false;
+    if (a.length !== b.length) return false;
 
-  function dijkstras(graph, startVertex, endVertex) {
+    // If you don't care about the order of the elements inside
+    // the array, you should sort both arrays here.
+    // Please note that calling sort on an array will modify that array.
+    // you might want to clone your array first.
+
+    for (var i = 0; i < a.length; ++i) {
+      if (a[i] !== b[i]) return false;
+    }
+    return true;
+  }
+
+  async function dijkstras(startVertex, endVertex) {
     //modify Graph options
-    network.selectNodes([1, 2, 3]);
+    const fringe = new FastPriorityQueue(function (a, b) {
+      return a[1] < b[1];
+    });
+    const distTo = new Array(15).fill(Number.MAX_SAFE_INTEGER);
+    distTo[startVertex] = 0;
+
+    fringe.add([startVertex, 0]);
+
+    for (let i = 0; i < 14; i++) {
+      if (i !== startVertex) {
+        fringe.add([i, Number.MAX_SAFE_INTEGER]);
+      }
+    }
+
+    while (!fringe.isEmpty()) {
+      await new Promise((r) => setTimeout(r, 1000));
+      //&& fringe.peek()[0] !== endVertex
+      fringe.forEach((value, index) => console.log(value, index));
+      console.log(distTo);
+      let currVertex = fringe.peek()[0];
+      let currVertexDist = fringe.peek()[1];
+      let neighboringVertices = network.getConnectedNodes(currVertex);
+      let neighboringEdges = network.getConnectedEdges(currVertex);
+      network.setSelection(
+        {
+          nodes: [currVertex],
+        },
+        {
+          unselectAll: false,
+          highlightEdges: false,
+        }
+      );
+
+      async function processNeighbors(neighbor) {
+        let commonEdge = await neighboringEdges.filter((edge) =>
+          network.getConnectedEdges(neighbor).includes(edge)
+        )[0]; //gives common edge in single-element array
+        console.log(commonEdge);
+        if (currVertexDist + parseInt(edges[commonEdge]) < distTo[neighbor]) {
+          fringe.removeOne((x) => arraysEqual(x, [neighbor, distTo[neighbor]]));
+          distTo[neighbor] = currVertexDist + parseInt(edges[commonEdge]);
+          fringe.add([neighbor, distTo[neighbor]]);
+          network.setSelection(
+            {
+              edges: [commonEdge],
+            },
+            {
+              unselectAll: false,
+              highlightEdges: false,
+            }
+          );
+        }
+      }
+
+      for (let i = 0; i < neighboringVertices.length; i++) {
+        let neighbor = neighboringVertices[i];
+        await processNeighbors(neighbor);
+      }
+
+      fringe.poll();
+    }
+
     setImmediate(() => {
       handleRun();
     });
   }
 
-  function A(graph, startVertex, endVertex) {}
+  function A(startVertex, endVertex) {}
 
-  function prims(graph, startVertex) {}
+  function prims(startVertex) {}
 
-  function kruskals(graph) {}
+  function kruskals() {}
 
   return renderGraph;
 };

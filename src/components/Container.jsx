@@ -16,11 +16,15 @@ const Container = () => {
   const reveal = () => {}; //TODO:
 
   const handleRun = () => {
+    console.log(edgeState);
     console.log(!running);
     setRunning(!running);
   };
 
+  const [edgeState, setEdgeState] = useState({});
+
   const shuffle = () => {
+    const edges = {};
     setGraph(() => {
       var newState = {
         nodes: Array.from(new Array(15).keys()).map((e) => ({
@@ -28,23 +32,28 @@ const Container = () => {
         })),
         edges: Array.from(new Array(10).keys()).map((e) => {
           var len = getRandomInt(2, 16);
+          var id = makeid(10);
+          edges[id] = len.toString();
           return {
             from: getRandomInt(0, 15),
             to: getRandomInt(0, 15),
             label: len.toString(),
             length: len * 20,
+            id: id,
           };
         }),
       };
-
       //ensure connectivity
       for (let i = 0; i < 14; i++) {
         let len = getRandomInt(2, 16);
+        var id = makeid(10);
+        edges[id] = len.toString();
         newState.edges.push({
           from: i,
           to: i + 1,
           label: len.toString(),
           length: len * 20,
+          id: id,
         });
       }
 
@@ -65,6 +74,7 @@ const Container = () => {
 
       return newState;
     });
+    setEdgeState(edges);
     setGraphKey(makeid(10));
   };
 
@@ -172,6 +182,7 @@ const Container = () => {
         algo={algo}
         running={running}
         handleRun={handleRun}
+        edges={edgeState}
       />
     </div>
   );
