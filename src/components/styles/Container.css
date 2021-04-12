@@ -10,13 +10,6 @@
   user-select: none;
 }
 
-#header-user {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  user-select: none;
-}
-
 #header > h3 {
   margin: 0 3rem;
   color: white;

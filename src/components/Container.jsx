@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import Visualizer from "./Visualizer";
 import Dropdown from "./Dropdown";
 import React, { useEffect, useState } from "react";
@@ -12,7 +13,12 @@ const Container = () => {
 
   // useEffect(() => console.log("RENDER"));
 
-  const reveal = () => {};
+  const reveal = () => {}; //TODO:
+
+  const handleRun = () => {
+    console.log(!running);
+    setRunning(!running);
+  };
 
   const shuffle = () => {
     setGraph(() => {
@@ -62,7 +68,7 @@ const Container = () => {
     setGraphKey(makeid(10));
   };
 
-  const [algo, setAlgo] = useState("Djikstra's");
+  const [algo, setAlgo] = useState("Dijkstra's");
 
   const [graphKey, setGraphKey] = useState(makeid(10));
 
@@ -148,7 +154,7 @@ const Container = () => {
           Set end vertex
         </a>
         <Dropdown handleChange={algoSelect} />
-        <a className="button" onClick={shuffle}>
+        <a className="button" onClick={handleRun}>
           Run
         </a>
         <a className="button" onClick={reveal}>
@@ -160,7 +166,13 @@ const Container = () => {
           <h3>Priority Queue (Fringe):</h3>
         )} */}
       </div>
-      <Visualizer key={graphKey} graph={graph} algo={algo} running={running} />
+      <Visualizer
+        key={graphKey}
+        graph={graph}
+        algo={algo}
+        running={running}
+        handleRun={handleRun}
+      />
     </div>
   );
 };
