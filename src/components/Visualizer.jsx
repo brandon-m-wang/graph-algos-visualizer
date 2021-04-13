@@ -15,13 +15,21 @@ const Visualizer = ({
   handleRun,
   edges,
   numNodes,
+  networkHandler,
   start,
   end,
 }) => {
   const [network, setNetwork] = useState({});
 
+  const handleSetVertex = (node) => {
+    console.log(node.color);
+    node.color.highlight.border = "#228B22";
+    node.color.highlight.background = "#32CD32";
+  };
+
   const options = {
     physics: {
+      enabled: true,
       barnesHut: {
         springLength: 95,
         springConstant: 0.01,
@@ -38,6 +46,21 @@ const Visualizer = ({
       shape: "dot",
       size: 15,
       mass: 2.7,
+      color: {
+        highlight: {
+          border: "#FFA500",
+          background: "#FFD700",
+        },
+      },
+    },
+    manipulation: {
+      enabled: false,
+      editNode: function (nodeData, callback) {
+        console.log(nodeData);
+        nodeData.color.highlight.background = "#66CD00";
+        nodeData.color.highlight.border = "#4A7023";
+        callback(nodeData);
+      },
     },
     layout: {
       hierarchical: false,
@@ -55,6 +78,11 @@ const Visualizer = ({
         },
       },
       chosen: true,
+      width: 0.5,
+      selectionWidth: 3,
+      color: {
+        highlight: "#DE6FA1",
+      },
       font: {
         size: 16,
       },
@@ -83,10 +111,11 @@ const Visualizer = ({
   );
 
   useEffect(() => {
+    networkHandler(network);
     if (running) {
       switch (algo) {
         case "Dijkstra's":
-          dijkstras(1, 14);
+          dijkstras(start, end);
           break;
         case "A*":
           A(start, end);
@@ -121,6 +150,16 @@ const Visualizer = ({
 
   async function dijkstras(startVertex, endVertex) {
     //modify Graph options
+    network.unselectAll();
+    network.setSelection(
+      {
+        nodes: [startVertex],
+      },
+      {
+        unselectAll: false,
+        highlightEdges: false,
+      }
+    );
     const fringe = new FastPriorityQueue(function (a, b) {
       return a[1] < b[1];
     });
@@ -140,7 +179,7 @@ const Visualizer = ({
         break;
       }
 
-      await new Promise((r) => setTimeout(r, 50));
+      await new Promise((r) => setTimeout(r, 70));
       //&& fringe.peek()[0] !== endVertex
       let currVertex = fringe.peek()[0];
       let currVertexDist = fringe.peek()[1];
@@ -184,7 +223,7 @@ const Visualizer = ({
 
       fringe.poll();
     }
-
+    console.log(distTo);
     setImmediate(() => {
       handleRun();
     });
