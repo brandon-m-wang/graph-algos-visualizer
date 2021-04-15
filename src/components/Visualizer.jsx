@@ -1,5 +1,6 @@
 import Graph from "react-graph-vis";
 import FastPriorityQueue from "fastpriorityqueue";
+import Info from "./Info";
 import { useCallback, useState, useEffect, componentDidUpdate } from "react";
 import "./styles/Visualizer.css";
 import "./styles/Constants.css";
@@ -21,12 +22,6 @@ const Visualizer = ({
 }) => {
   const [network, setNetwork] = useState({});
 
-  const handleSetVertex = (node) => {
-    console.log(node.color);
-    node.color.highlight.border = "#228B22";
-    node.color.highlight.background = "#32CD32";
-  };
-
   const options = {
     physics: {
       enabled: true,
@@ -43,7 +38,7 @@ const Visualizer = ({
       zoomView: true,
     },
     nodes: {
-      shape: "dot",
+      shape: "circle",
       size: 15,
       mass: 2.7,
       color: {
@@ -56,7 +51,6 @@ const Visualizer = ({
     manipulation: {
       enabled: false,
       editNode: function (nodeData, callback) {
-        console.log(nodeData);
         nodeData.color.highlight.background = "#66CD00";
         nodeData.color.highlight.border = "#4A7023";
         callback(nodeData);
@@ -110,12 +104,56 @@ const Visualizer = ({
     />
   );
 
+  const defaultSettings = {
+    id: 0,
+    shape: "circle",
+    size: 15,
+    mass: 2.7,
+    label: "",
+    color: {
+      highlight: {
+        border: "#FFA500",
+        background: "#FFD700",
+      },
+    },
+  };
+
+  function updateNodeLabel(id, dist) {
+    let settings = JSON.parse(JSON.stringify(defaultSettings));
+    settings.id = id.toString();
+    settings.label = dist.toString();
+    return settings;
+  }
+
+  function updateStartNodeLabel(id, dist) {
+    let settings = JSON.parse(JSON.stringify(defaultSettings));
+    settings.color.background = "#66CD00";
+    settings.color.border = "#4A7023";
+    settings.chosen = false;
+    settings.id = id.toString();
+    settings.label = dist.toString();
+    return settings;
+  }
+
+  function updateEndNodeLabel(id, dist) {
+    let settings = JSON.parse(JSON.stringify(defaultSettings));
+    settings.color.background = "#ff4c4c";
+    settings.color.border = "#7f0000";
+    settings.chosen = false;
+    settings.id = id.toString();
+    settings.label = dist.toString();
+    return settings;
+  }
+
   useEffect(() => {
     networkHandler(network);
     if (running) {
       switch (algo) {
         case "Dijkstra's":
-          dijkstras(start, end);
+          dijkstras(start, null, false);
+          break;
+        case "Dijkstra's (with Pathfinding)":
+          dijkstras(start, end, true);
           break;
         case "A*":
           A(start, end);
@@ -148,9 +186,16 @@ const Visualizer = ({
     return true;
   }
 
-  async function dijkstras(startVertex, endVertex) {
-    //modify Graph options
+  async function dijkstras(startVertex, endVertex, withPathfinding) {
     network.unselectAll();
+    //some tree structure to track final path
+    var TreeModel = require("tree-model"),
+      tree = new TreeModel(),
+      root = tree.parse({ id: startVertex, children: [{}] });
+
+    for (var i = 0; i < numNodes; i++) {
+      network.body.data.nodes.update({ id: i, label: "" });
+    }
     network.setSelection(
       {
         nodes: [startVertex],
@@ -160,9 +205,13 @@ const Visualizer = ({
         highlightEdges: false,
       }
     );
+
+    network.body.data.nodes.update({ id: startVertex, label: "0" });
+
     const fringe = new FastPriorityQueue(function (a, b) {
       return a[1] < b[1];
     });
+
     const distTo = new Array(numNodes).fill(Number.MAX_SAFE_INTEGER);
     distTo[startVertex] = 0;
 
@@ -175,11 +224,7 @@ const Visualizer = ({
     }
 
     while (!fringe.isEmpty()) {
-      if (network.getSelectedNodes().length === numNodes) {
-        break;
-      }
-
-      await new Promise((r) => setTimeout(r, 70));
+      await new Promise((r) => setTimeout(r, 65));
       //&& fringe.peek()[0] !== endVertex
       let currVertex = fringe.peek()[0];
       let currVertexDist = fringe.peek()[1];
@@ -194,7 +239,9 @@ const Visualizer = ({
           highlightEdges: false,
         }
       );
-
+      let treePos = root.first(function (node) {
+        return node.model.id === currVertex;
+      });
       async function processNeighbors(neighbor) {
         let commonEdge = await neighboringEdges.filter((edge) =>
           network.getConnectedEdges(neighbor).includes(edge)
@@ -203,6 +250,17 @@ const Visualizer = ({
           fringe.removeOne((x) => arraysEqual(x, [neighbor, distTo[neighbor]]));
           distTo[neighbor] = currVertexDist + parseInt(edges[commonEdge]);
           fringe.add([neighbor, distTo[neighbor]]);
+          network.body.data.nodes.update({
+            id: neighbor,
+            label: distTo[neighbor].toString(),
+          });
+          let oldPos = root.first(function (node) {
+            return node.model.id === neighbor;
+          });
+          if (oldPos !== undefined) {
+            oldPos.drop();
+          }
+          treePos.addChild(tree.parse({ id: neighbor, children: [{}] }));
           network.setSelection(
             {
               nodes: [neighbor],
@@ -215,15 +273,39 @@ const Visualizer = ({
           );
         }
       }
-
       for (let i = 0; i < neighboringVertices.length; i++) {
         let neighbor = neighboringVertices[i];
-        await processNeighbors(neighbor);
+        processNeighbors(neighbor);
       }
 
       fringe.poll();
     }
-    console.log(distTo);
+    if (withPathfinding) {
+      const endPos = root.first(function (node) {
+        return node.model.id === endVertex;
+      });
+      const shortestPath = endPos.getPath();
+      network.unselectAll();
+      for (let i = 0; i < shortestPath.length - 1; i++) {
+        let neighboringEdges = network.getConnectedEdges(
+          shortestPath[i].model.id
+        );
+        let commonEdge = await neighboringEdges.filter((edge) =>
+          network.getConnectedEdges(shortestPath[i + 1].model.id).includes(edge)
+        )[0];
+        network.setSelection(
+          {
+            nodes: [shortestPath[i].model.id],
+            edges: [commonEdge],
+          },
+          {
+            unselectAll: false,
+            highlightEdges: false,
+          }
+        );
+        await new Promise((r) => setTimeout(r, 265));
+      }
+    }
     setImmediate(() => {
       handleRun();
     });

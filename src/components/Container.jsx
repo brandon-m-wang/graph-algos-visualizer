@@ -1,22 +1,46 @@
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import Visualizer from "./Visualizer";
 import Dropdown from "./Dropdown";
-import React, { useEffect, useState } from "react";
+import Input from "./Input";
+import React, { useState } from "react";
 import "./styles/Container.css";
 import "./styles/Constants.css";
 
-const numNodes = 50;
-const randEdges = 30;
-
 const Container = () => {
+  const [numNodes, setNumNodes] = useState(40);
+  const randEdges = Math.round(numNodes * 0.6);
   const algoSelect = (event) => {
     event.preventDefault();
+    if (startVertex !== undefined && startVertex !== null) {
+      network.body.nodes[startVertex].options.color.border = "#2B7CE9";
+      network.body.nodes[startVertex].options.color.background = "#98C2FC";
+      network.body.nodes[startVertex].options.chosen = true;
+    }
+    if (endVertex !== undefined && endVertex !== null) {
+      network.body.nodes[endVertex].options.color.border = "#2B7CE9";
+      network.body.nodes[endVertex].options.color.background = "#98C2FC";
+      network.body.nodes[endVertex].options.chosen = true;
+    }
+    setStartVertex(null);
+    setEndVertex(null);
+    for (let i = 0; i < numNodes; i++) {
+      network.body.data.nodes.update({ id: i, label: "" });
+    }
+    network.unselectAll();
     setAlgo(event.target.value);
   };
 
   // useEffect(() => console.log("RENDER"));
 
   const reveal = () => {}; //TODO:
+
+  const handleInput = (event) => {
+    event.preventDefault();
+    setNumNodes(parseInt(event.target.value));
+    setNumChanged(true);
+  };
+
+  const [numChanged, setNumChanged] = useState(false);
 
   const [startVertex, setStartVertex] = useState();
 
@@ -45,7 +69,7 @@ const Container = () => {
     network.setOptions({
       manipulation: {
         editNode: function (nodeData, callback) {
-          nodeData.color.background = "#D2E5FF";
+          nodeData.color.background = "#98C2FC";
           nodeData.color.border = "#2B7CE9";
           nodeData.chosen = true;
           callback(nodeData);
@@ -81,7 +105,7 @@ const Container = () => {
     network.setOptions({
       manipulation: {
         editNode: function (nodeData, callback) {
-          nodeData.color.background = "#D2E5FF";
+          nodeData.color.background = "#98C2FC";
           nodeData.color.border = "#2B7CE9";
           nodeData.chosen = true;
           callback(nodeData);
@@ -101,7 +125,20 @@ const Container = () => {
   };
 
   const setStart = () => {
+    if (network.getSelectedNodes().length === 0) {
+      alert("Highlight a node first.");
+      return;
+    }
     undoVertexStartSelection();
+    network.setSelection(
+      {
+        nodes: [network.getSelectedNodes()[0]],
+      },
+      {
+        unselectAll: true,
+        highlightEdges: false,
+      }
+    );
     setStartVertex(network.getSelectedNodes()[0]);
     network.setOptions({
       manipulation: {
@@ -113,12 +150,25 @@ const Container = () => {
         },
       },
     });
-
     network.editNode();
+    network.unselectAll();
   };
 
   const setEnd = () => {
+    if (network.getSelectedNodes().length === 0) {
+      alert("Highlight a node first.");
+      return;
+    }
     undoVertexEndSelection();
+    network.setSelection(
+      {
+        nodes: [network.getSelectedNodes()[0]],
+      },
+      {
+        unselectAll: true,
+        highlightEdges: false,
+      }
+    );
     network.setOptions({
       manipulation: {
         editNode: function (nodeData, callback) {
@@ -131,18 +181,19 @@ const Container = () => {
     });
     setEndVertex(network.getSelectedNodes()[0]);
     network.editNode();
+    network.unselectAll();
   };
 
   const handleRun = () => {
     if (startVertex == null) {
-      //handle
       alert("Choose starting vertex.");
       return;
     }
-    if (endVertex == null) {
-      //handle all cases that might not require end vertex
-      alert("Choose end vertex.");
-      return;
+    if (algo === "Dijkstra's (with Pathfinding)") {
+      if (endVertex == null) {
+        alert("Choose end vertex.");
+        return;
+      }
     }
     setRunning(!running);
   };
@@ -150,6 +201,11 @@ const Container = () => {
   const [edgeState, setEdgeState] = useState({});
 
   const shuffle = () => {
+    if (numNodes > 50) {
+      alert("Too many nodes (render physics performance issues). Try <= 50");
+      return;
+    }
+    setNumChanged(false);
     setStartVertex(null);
     setEndVertex(null);
     const edges = {};
@@ -283,46 +339,93 @@ const Container = () => {
     return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
   }
 
+  const resetLabels = () => {
+    if (!running && network.getSelectedNodes().length === 0) {
+      for (let i = 0; i < numNodes; i++) {
+        network.body.data.nodes.update({ id: i, label: "" });
+      }
+    }
+  };
+
   return (
     <div>
       <div id="header">
-        <h3 style={{ position: "absolute", left: 0 }}>
-          Graph Traversal Algorithms
-        </h3>
-        <a className="button" onClick={shuffle}>
-          Shuffle
+        <a
+          className="button"
+          onClick={shuffle}
+          style={{
+            pointerEvents: running ? "none" : "",
+            filter: running ? "brightness(0.5)" : "none",
+          }}
+        >
+          Generate
         </a>
-        <a className="button1" onClick={setStart}>
+        <Input
+          handleInput={handleInput} running={running}
+        />
+        <a
+          className="button1"
+          onClick={setStart}
+          style={{
+            pointerEvents: running || numChanged ? "none" : "",
+            filter: running || numChanged ? "brightness(0.5)" : "none",
+          }}
+        >
           Set start vertex
         </a>
-        <a className="button2" onClick={setEnd}>
+        <a
+          className="button2"
+          onClick={setEnd}
+          style={{
+            pointerEvents:
+              running || numChanged || algo === "Dijkstra's" ? "none" : "",
+            filter:
+              running || numChanged || algo === "Dijkstra's"
+                ? "brightness(0.5)"
+                : "none",
+          }}
+        >
           Set end vertex
         </a>
-        <Dropdown handleChange={algoSelect} />
-        <a className="button" onClick={handleRun}>
+        <Dropdown handleChange={algoSelect} running={running || numChanged} />
+        <a
+          className="button"
+          onClick={handleRun}
+          style={{
+            pointerEvents: running || numChanged ? "none" : "",
+            filter: running || numChanged ? "brightness(0.5)" : "none",
+          }}
+        >
           Run
         </a>
-        <a className="button" onClick={reveal}>
+        {/* <a className="button" onClick={reveal}>
           Detailed runtime info
-        </a>
+        </a> */}
         {/* {algo === "Kruskal's" ? (
           <h3>WQUPC Object (Disjoint Sets):</h3>
         ) : (
           <h3>Priority Queue (Fringe):</h3>
         )} */}
       </div>
-      <Visualizer
-        key={graphKey}
-        graph={graph}
-        algo={algo}
-        running={running}
-        handleRun={handleRun}
-        edges={edgeState}
-        numNodes={numNodes}
-        networkHandler={liftNetworkState}
-        start={startVertex}
-        end={endVertex}
-      />
+      <div
+        style={{
+          pointerEvents: running || numChanged ? "none" : "",
+        }}
+        onClick={resetLabels}
+      >
+        <Visualizer
+          key={graphKey}
+          graph={graph}
+          algo={algo}
+          running={running}
+          handleRun={handleRun}
+          edges={edgeState}
+          numNodes={numNodes}
+          networkHandler={liftNetworkState}
+          start={startVertex}
+          end={endVertex}
+        />
+      </div>
     </div>
   );
 };

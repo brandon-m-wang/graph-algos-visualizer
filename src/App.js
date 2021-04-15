@@ -8,10 +8,10 @@ import "vis-network/styles/vis-network.css";
 
 const App = () => {
   return(
-    <div id="root">
-      <Container />
-      <Footer />
-    </div>
+      <div id="root">
+        <Container />
+        <Footer />
+      </div>
   );
 }
 
