@@ -201,8 +201,8 @@ const Container = () => {
   const [edgeState, setEdgeState] = useState({});
 
   const shuffle = () => {
-    if (numNodes > 50) {
-      alert("Too many nodes (render physics performance issues). Try <= 50");
+    if (numNodes < 4) {
+      alert("Too few nodes.");
       return;
     }
     setNumChanged(false);
@@ -360,9 +360,7 @@ const Container = () => {
         >
           Generate
         </a>
-        <Input
-          handleInput={handleInput} running={running}
-        />
+        <Input handleInput={handleInput} running={running} />
         <a
           className="button1"
           onClick={setStart}
