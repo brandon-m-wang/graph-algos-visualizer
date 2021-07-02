@@ -10,9 +10,9 @@ const Dropdown = ({ handleChange, running }) => {
       <select name="slct" id="slct" onChange={handleChange}>
         <option>Dijkstra's</option>
         <option>Dijkstra's (with Pathfinding)</option>
-        {/* <option>A*</option>
-        <option>Prim's</option>
-        <option>Kruskal's</option> */}
+        <option>A*</option>
+        <option>Prim's (WIP)</option>
+        <option>Kruskal's (WIP)</option>
       </select>
     </form>
   );

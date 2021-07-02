@@ -158,10 +158,10 @@ const Visualizer = ({
         case "A*":
           A(start, end);
           break;
-        case "Prim's":
+        case "Prim's (WIP)":
           prims(start);
           break;
-        case "Kruskal's":
+        case "Kruskal's (WIP)":
           kruskals();
           break;
         default:
@@ -311,11 +311,150 @@ const Visualizer = ({
     });
   }
 
-  function A(startVertex, endVertex) {}
+  async function A(startVertex, endVertex) {
+    network.unselectAll();
+    //some tree structure to track final path
+    const heuristic = (neighboringEdges) => {
+      return Math.min(...neighboringEdges.map((edge) => parseInt(edges[edge])));
+    };
 
-  function prims(startVertex) {}
+    var TreeModel = require("tree-model"),
+      tree = new TreeModel(),
+      root = tree.parse({ id: startVertex, children: [{}] });
 
-  function kruskals() {}
+    for (var i = 0; i < numNodes; i++) {
+      network.body.data.nodes.update({ id: i, label: "" });
+    }
+    network.setSelection(
+      {
+        nodes: [startVertex],
+      },
+      {
+        unselectAll: false,
+        highlightEdges: false,
+      }
+    );
+
+    network.body.data.nodes.update({ id: startVertex, label: "0" });
+
+    const fringe = new FastPriorityQueue(function (a, b) {
+      return a[1] < b[1];
+    });
+
+    const distTo = new Array(numNodes).fill(Number.MAX_SAFE_INTEGER);
+    distTo[startVertex] = 0;
+
+    fringe.add([startVertex, 0]);
+
+    for (let i = 0; i < numNodes - 1; i++) {
+      if (i !== startVertex) {
+        fringe.add([i, Number.MAX_SAFE_INTEGER]);
+      }
+    }
+
+    while (!fringe.isEmpty()) {
+      await new Promise((r) => setTimeout(r, 65));
+      let currVertex = fringe.peek()[0];
+      let currVertexDist = fringe.peek()[1];
+      let neighboringVertices = network.getConnectedNodes(currVertex);
+      let neighboringEdges = network.getConnectedEdges(currVertex);
+      network.setSelection(
+        {
+          nodes: [currVertex],
+        },
+        {
+          unselectAll: false,
+          highlightEdges: false,
+        }
+      );
+      let treePos = root.first(function (node) {
+        return node.model.id === currVertex;
+      });
+      if (currVertex === endVertex) {
+        break;
+      }
+      async function processNeighbors(neighbor) {
+        let commonEdge = await neighboringEdges.filter((edge) =>
+          network.getConnectedEdges(neighbor).includes(edge)
+        )[0]; //gives common edge in single-element array
+        if (currVertexDist + parseInt(edges[commonEdge]) < distTo[neighbor]) {
+          fringe.removeOne((x) => arraysEqual(x, [neighbor, distTo[neighbor]]));
+          distTo[neighbor] = currVertexDist + parseInt(edges[commonEdge]);
+          fringe.add([
+            neighbor,
+            distTo[neighbor] + heuristic(neighboringEdges),
+          ]);
+          network.body.data.nodes.update({
+            id: neighbor,
+            label: distTo[neighbor].toString(),
+          });
+          let oldPos = root.first(function (node) {
+            return node.model.id === neighbor;
+          });
+          if (oldPos !== undefined) {
+            oldPos.drop();
+          }
+          treePos.addChild(tree.parse({ id: neighbor, children: [{}] }));
+          network.setSelection(
+            {
+              nodes: [neighbor],
+              edges: [commonEdge],
+            },
+            {
+              unselectAll: false,
+              highlightEdges: false,
+            }
+          );
+        }
+      }
+      for (let i = 0; i < neighboringVertices.length; i++) {
+        let neighbor = neighboringVertices[i];
+        processNeighbors(neighbor);
+      }
+      fringe.poll();
+    }
+    const endPos = root.first(function (node) {
+      return node.model.id === endVertex;
+    });
+    const shortestPath = endPos.getPath();
+    network.unselectAll();
+    for (let i = 0; i < shortestPath.length - 1; i++) {
+      let neighboringEdges = network.getConnectedEdges(
+        shortestPath[i].model.id
+      );
+      let commonEdge = await neighboringEdges.filter((edge) =>
+        network.getConnectedEdges(shortestPath[i + 1].model.id).includes(edge)
+      )[0];
+      network.setSelection(
+        {
+          nodes: [shortestPath[i].model.id],
+          edges: [commonEdge],
+        },
+        {
+          unselectAll: false,
+          highlightEdges: false,
+        }
+      );
+      await new Promise((r) => setTimeout(r, 265));
+    }
+    setImmediate(() => {
+      handleRun();
+    });
+  }
+
+  function prims(startVertex) {
+    network.unselectAll();
+    setImmediate(() => {
+      handleRun();
+    });
+  }
+
+  function kruskals() {
+    network.unselectAll();
+    setImmediate(() => {
+      handleRun();
+    });
+  }
 
   return renderGraph;
 };
